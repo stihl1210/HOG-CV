@@ -1,9 +1,9 @@
 
 Histogram of oriented gradients visualisation using OpenCV 
 
-Step by step calculation, so not all calculations and loops are optimal. Feel free to use and comment.
+Step by step calculation, so not all methods and loops are optimal. Feel free to use and comment.
 
-Dependiences:
+Dependencies:
 - OpenCV for Python
 - Python 3.4
 
