@@ -27,6 +27,7 @@ img= img[h_start:h_stop, w_start:w_stop]
 dividerx = img.shape[0]/128
 dividery = img.shape[1]/128
 
+
 img = cv2.resize(img, ( int(img.shape[0]/dividerx), int(img.shape[0]/dividery)), interpolation=cv2.INTER_LINEAR )
 
 print(img.shape)
@@ -42,7 +43,7 @@ mag, angle = cv2.cartToPolar(gx, gy, angleInDegrees=True)
 print(mag.shape)
 
 
-hist = np.zeros((int(mag.shape[0]/8), int(mag.shape[1]/8), 9))
+hist_vis = np.zeros((int(mag.shape[0] / 8), int(mag.shape[1] / 8), 9))
 
 
 def getAngles(ang):
@@ -89,42 +90,32 @@ for px in range(int(mag.shape[0]/8)):
 
                 val, id1, id2, fp, fp2 = getAngles(int(ang));
 
-                hist[px,py,id1]+= fp * val
-                hist[px,py,id2]+= fp2 * val
+                hist_vis[px, py, id1]+= fp * val
+                hist_vis[px, py, id2]+= fp2 * val
 
-print(hist.shape)
+print(hist_vis.shape)
 
-histBig = np.zeros( (hist.shape[0]-1, hist.shape[1]-1, 4*8))
+hist_descr = np.zeros((hist_vis.shape[0] - 1, hist_vis.shape[1] - 1, 4 * 8))
 
 from numpy import linalg as LA
 
-for i in range(hist.shape[0]-1):
-    for j in range(hist.shape[1]-1):
-        histBig[i,j,:9] = hist[i,j]
-        histBig[i,j, 7:16] = hist[i+1,j]
-        histBig[i, j, 15:24] = hist[i, j+1]
-        histBig[i, j, 23:] = hist[i+1, j+1]
-        histBig[i, j] = histBig[i, j]/LA.norm(histBig[i,j])
-
-
-for i in range(hist.shape[0] - 1):
-    for j in range(hist.shape[1] - 1):
-
-        hist[i, j] = histBig[i, j, :9]
-        hist[i + 1, j] = histBig[i, j, 7:16]
-        hist[i, j + 1] = histBig[i, j, :15:24]
-        hist[i + 1, j + 1] = histBig[i, j, 23:]
-
+for i in range(hist_vis.shape[0]-1):
+    for j in range(hist_vis.shape[1]-1):
+        hist_descr[i, j, :9] = hist_vis[i, j]
+        hist_descr[i, j, 7:16] = hist_vis[i + 1, j]
+        hist_descr[i, j, 15:24] = hist_vis[i, j + 1]
+        hist_descr[i, j, 23:] = hist_vis[i + 1, j + 1]
+        hist_descr[i, j] = hist_descr[i, j] / LA.norm(hist_descr[i, j])
 
 for px in range(int(mag.shape[0]/8)):
     for py in range(int(mag.shape[1]/8)):
 
         xs = px * 8 +4
         ys = py * 8 +4
-
+        hist_vis[px, py] = hist_vis[px, py] / LA.norm(hist_vis[px, py])
         for i in range(9):
 
-            val = hist[px,py][i]*8
+            val = hist_vis[px, py][i] * 8
 
             if(not val > 0):
                 val = 0
@@ -133,15 +124,15 @@ for px in range(int(mag.shape[0]/8)):
             a = int(np.sqrt(val*val - b*b))
 
             if(i<=4):
-                cv2.line(img,(xs-b,ys-a),(xs+b,ys+a),(0,0,255),1)
+                cv2.line(img,(xs+b,ys-a),(xs-b,ys+a),(0,0,255),1)
             else:
-                cv2.line(img,(xs+b,ys+a),(xs-b,ys-a),(0,0,255),1)
+                cv2.line(img,(xs-b,ys-a),(xs+b,ys+a),(0,0,255),1)
 
 
 ##hist vector
-hist = histBig.flatten()
+hist_vis = hist_descr.flatten()
 
-print(hist.shape)
+print(hist_vis.shape)
 
 
 cv2.imshow('hog visualisation',img)
